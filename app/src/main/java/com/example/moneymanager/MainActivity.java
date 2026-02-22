@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -126,9 +127,25 @@ public class MainActivity extends AppCompatActivity implements TransactionAdapte
     }
 
     @Override
+
     public void onDeleteClick(int position) {
+
         Transaction transaction = adapter.getTransactionList().get(position);
-        deleteTransaction(transaction, position);
+
+        new AlertDialog.Builder(this)
+                .setTitle("Confirm Delete")
+                .setMessage("Are you sure you want to delete this transaction?")
+                .setPositiveButton("Delete", (dialog, which) -> {
+
+                    dbHelper.deleteTransaction(transaction.getId());
+
+                    adapter.getTransactionList().remove(position);
+                    adapter.notifyItemRemoved(position);
+                    adapter.notifyItemRangeChanged(position, adapter.getItemCount());
+
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     @Override

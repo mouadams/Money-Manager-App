@@ -5,6 +5,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.moneymanager.R;
@@ -51,43 +52,57 @@ public class TransactionDetailsActivity extends AppCompatActivity {
         String title = etTitle.getText().toString().trim();
         String amountStr = etAmount.getText().toString().trim();
 
-        // Validate title
         if (title.isEmpty()) {
             etTitle.setError("Title cannot be empty");
             etTitle.requestFocus();
             return;
         }
 
-        // Validate amount
         if (amountStr.isEmpty()) {
             etAmount.setError("Amount cannot be empty");
             etAmount.requestFocus();
             return;
         }
 
-        try {
-            double amount = Double.parseDouble(amountStr);
+        new AlertDialog.Builder(this)
+                .setTitle("Confirm Update")
+                .setMessage("Are you sure you want to update this transaction?")
+                .setPositiveButton("Yes", (dialog, which) -> {
 
-            transaction.setReason(title);
-            transaction.setAmount(amount);
+                    try {
+                        double amount = Double.parseDouble(amountStr);
 
-            dbHelper.updateTransaction(transaction);
+                        transaction.setReason(title);
+                        transaction.setAmount(amount);
 
-            Toast.makeText(this, "Transaction updated", Toast.LENGTH_SHORT).show();
+                        dbHelper.updateTransaction(transaction);
 
-            setResult(RESULT_OK);
-            finish();
+                        setResult(RESULT_OK);
+                        finish();
 
-        } catch (NumberFormatException e) {
-            etAmount.setError("Please enter a valid number");
-            etAmount.requestFocus();
-        }
+                    } catch (NumberFormatException e) {
+                        etAmount.setError("Invalid number");
+                        etAmount.requestFocus();
+                    }
+
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     private void deleteTransaction() {
-        dbHelper.deleteTransaction(transactionId);
-        Toast.makeText(this, "Transaction deleted", Toast.LENGTH_SHORT).show();
-        setResult(RESULT_OK);
-        finish();
+
+        new AlertDialog.Builder(this)
+                .setTitle("Confirm Delete")
+                .setMessage("Are you sure you want to delete this transaction?")
+                .setPositiveButton("Delete", (dialog, which) -> {
+
+                    dbHelper.deleteTransaction(transactionId);
+
+                    setResult(RESULT_OK);
+                    finish();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 }
