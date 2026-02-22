@@ -7,21 +7,28 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import com.example.moneymanager.model.Transaction;
+import com.example.moneymanager.model.User;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "MoneyManager.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     private static final String TABLE_TRANSACTIONS = "transactions";
+    private static final String TABLE_USERS = "users";
     private static final String COLUMN_ID = "id";
     private static final String COLUMN_TYPE = "type";
     private static final String COLUMN_AMOUNT = "amount";
     private static final String COLUMN_REASON = "reason";
     private static final String COLUMN_DATE = "date";
+    private static final String COLUMN_USER_FULL_NAME = "full_name";
+    private static final String COLUMN_USER_EMAIL = "email";
+    private static final String COLUMN_USER_PASSWORD = "password";
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -29,19 +36,35 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String createTable = "CREATE TABLE " + TABLE_TRANSACTIONS + " (" +
+        // Create transactions table
+        String createTransactionsTable = "CREATE TABLE " + TABLE_TRANSACTIONS + " (" +
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_TYPE + " TEXT, " +
                 COLUMN_AMOUNT + " REAL, " +
                 COLUMN_REASON + " TEXT, " +
                 COLUMN_DATE + " TEXT)";
-        db.execSQL(createTable);
+        db.execSQL(createTransactionsTable);
+
+        // Create users table
+        String createUsersTable = "CREATE TABLE " + TABLE_USERS + " (" +
+                COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_USER_FULL_NAME + " TEXT NOT NULL, " +
+                COLUMN_USER_EMAIL + " TEXT UNIQUE NOT NULL, " +
+                COLUMN_USER_PASSWORD + " TEXT NOT NULL)";
+        db.execSQL(createUsersTable);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_TRANSACTIONS);
-        onCreate(db);
+        if (oldVersion < 2) {
+            // Create users table for new version
+            String createUsersTable = "CREATE TABLE IF NOT EXISTS " + TABLE_USERS + " (" +
+                    COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    COLUMN_USER_FULL_NAME + " TEXT NOT NULL, " +
+                    COLUMN_USER_EMAIL + " TEXT UNIQUE NOT NULL, " +
+                    COLUMN_USER_PASSWORD + " TEXT NOT NULL)";
+            db.execSQL(createUsersTable);
+        }
     }
 
     public boolean addTransaction(String type, double amount, String reason, String date) {
@@ -135,5 +158,91 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public boolean deleteTransaction(int id) {
         SQLiteDatabase db = this.getWritableDatabase();
         return db.delete(TABLE_TRANSACTIONS, COLUMN_ID + " = ?", new String[]{String.valueOf(id)}) > 0;
+    }
+
+    // User authentication methods
+    public long registerUser(String fullName, String email, String password) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_USER_FULL_NAME, fullName);
+        values.put(COLUMN_USER_EMAIL, email);
+        values.put(COLUMN_USER_PASSWORD, hashPassword(password));
+
+        long result = db.insert(TABLE_USERS, null, values);
+        return result;
+    }
+
+    public User loginUser(String email, String password) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String hashedPassword = hashPassword(password);
+        
+        Cursor cursor = db.query(TABLE_USERS,
+                new String[]{COLUMN_ID, COLUMN_USER_FULL_NAME, COLUMN_USER_EMAIL, COLUMN_USER_PASSWORD},
+                COLUMN_USER_EMAIL + " = ? AND " + COLUMN_USER_PASSWORD + " = ?",
+                new String[]{email, hashedPassword},
+                null, null, null);
+
+        User user = null;
+        if (cursor != null && cursor.moveToFirst()) {
+            user = new User(
+                    cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID)),
+                    cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_USER_FULL_NAME)),
+                    cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_USER_EMAIL)),
+                    "" // Don't return password
+            );
+            cursor.close();
+        }
+        return user;
+    }
+
+    public boolean emailExists(String email) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_USERS,
+                new String[]{COLUMN_ID},
+                COLUMN_USER_EMAIL + " = ?",
+                new String[]{email},
+                null, null, null);
+
+        boolean exists = cursor != null && cursor.getCount() > 0;
+        if (cursor != null) {
+            cursor.close();
+        }
+        return exists;
+    }
+
+    public User getUserById(int userId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_USERS,
+                new String[]{COLUMN_ID, COLUMN_USER_FULL_NAME, COLUMN_USER_EMAIL, COLUMN_USER_PASSWORD},
+                COLUMN_ID + " = ?",
+                new String[]{String.valueOf(userId)},
+                null, null, null);
+
+        User user = null;
+        if (cursor != null && cursor.moveToFirst()) {
+            user = new User(
+                    cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID)),
+                    cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_USER_FULL_NAME)),
+                    cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_USER_EMAIL)),
+                    "" // Don't return password
+            );
+            cursor.close();
+        }
+        return user;
+    }
+
+    private String hashPassword(String password) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = md.digest(password.getBytes());
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hashBytes) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return password; // Fallback to plain text (not recommended for production)
+        }
     }
 }

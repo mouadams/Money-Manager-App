@@ -15,10 +15,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.moneymanager.activity.AddTransactionActivity;
+import com.example.moneymanager.activity.LoginActivity;
 import com.example.moneymanager.activity.TransactionDetailsActivity;
 import com.example.moneymanager.adapter.TransactionAdapter;
 import com.example.moneymanager.database.DatabaseHelper;
 import com.example.moneymanager.model.Transaction;
+import com.example.moneymanager.utils.AuthHelper;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
@@ -34,17 +36,28 @@ public class MainActivity extends AppCompatActivity implements TransactionAdapte
     private TextView tvBalance;
     private FloatingActionButton fabAdd;
     private MaterialButton btnToggle;
+    private MaterialButton btnLogout;
+    private AuthHelper authHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        authHelper = new AuthHelper(this);
+
+        // Check if user is authenticated
+        if (!authHelper.isLoggedIn()) {
+            navigateToLogin();
+            return;
+        }
+
         initViews();
         setupRecyclerView();
         loadTransactions();
         setupFab();
         setupThemeToggle();
+        setupLogout();
     }
 
     private void initViews() {
@@ -52,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements TransactionAdapte
         tvBalance = findViewById(R.id.tvBalance);
         fabAdd = findViewById(R.id.fabAdd);
         btnToggle = findViewById(R.id.btnThemeToggle);
+        btnLogout = findViewById(R.id.btnLogout);
         dbHelper = new DatabaseHelper(this);
     }
 
@@ -68,6 +82,27 @@ public class MainActivity extends AppCompatActivity implements TransactionAdapte
             }
             recreate();
         });
+    }
+
+    private void setupLogout() {
+        btnLogout.setOnClickListener(v -> {
+            new AlertDialog.Builder(this)
+                    .setTitle("Logout")
+                    .setMessage("Are you sure you want to logout?")
+                    .setPositiveButton("Logout", (dialog, which) -> {
+                        authHelper.logout();
+                        navigateToLogin();
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+        });
+    }
+
+    private void navigateToLogin() {
+        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 
     private void setupRecyclerView() {
