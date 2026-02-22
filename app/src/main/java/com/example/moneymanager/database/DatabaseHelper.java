@@ -77,6 +77,47 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return transactionList;
     }
 
+    public Transaction getTransactionById(int id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM transactions WHERE id=?",
+                new String[]{String.valueOf(id)});    if (cursor.moveToFirst()) {
+            Transaction transaction = new Transaction(
+                    cursor.getInt(0),      // COLUMN_ID at index 0
+                    cursor.getString(1),   // COLUMN_TYPE at index 1
+                    cursor.getDouble(2),   // COLUMN_AMOUNT at index 2
+                    cursor.getString(3),   // COLUMN_REASON at index 3
+                    cursor.getString(4)    // (FIX) Add COLUMN_DATE at index 4
+            );
+            cursor.close();
+            return transaction;
+        }
+
+        cursor.close();
+        return null;
+    }
+
+    public int updateTransaction(Transaction transaction) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put("type", transaction.getType());
+        values.put("reason", transaction.getReason());
+        values.put("amount", transaction.getAmount());
+        values.put("date", transaction.getDate());
+
+        int rowsAffected = db.update(
+                "transactions",            // table name
+                values,
+                "id = ?",                  // where clause
+                new String[]{String.valueOf(transaction.getId())}
+        );
+
+        db.close();
+
+        return rowsAffected;
+    }
+
     public double getTotalBalance() {
         double balance = 0;
         SQLiteDatabase db = this.getReadableDatabase();

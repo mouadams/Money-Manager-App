@@ -27,10 +27,20 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         void onDeleteClick(int position);
     }
 
-    public TransactionAdapter(Context context, List<Transaction> transactionList, OnDeleteClickListener listener) {
+    public interface OnItemClickListener {
+        void onItemClick(Transaction transaction);
+    }
+
+    private final OnItemClickListener onItemClickListener;
+
+    public TransactionAdapter(Context context,
+                              List<Transaction> transactionList,
+                              OnDeleteClickListener deleteListener,
+                              OnItemClickListener itemClickListener) {
         this.context = context;
         this.transactionList = transactionList;
-        this.onDeleteClickListener = listener;
+        this.onDeleteClickListener = deleteListener;
+        this.onItemClickListener = itemClickListener;
     }
 
     @NonNull
@@ -92,6 +102,15 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
                     int position = getAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
                         onDeleteClickListener.onDeleteClick(position);
+                    }
+                }
+            });
+
+            itemView.setOnClickListener(v -> {
+                if (onItemClickListener != null) {
+                    int position = getAdapterPosition();
+                    if (position != RecyclerView.NO_POSITION) {
+                        onItemClickListener.onItemClick(transactionList.get(position));
                     }
                 }
             });

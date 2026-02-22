@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.moneymanager.activity.AddTransactionActivity;
+import com.example.moneymanager.activity.TransactionDetailsActivity;
 import com.example.moneymanager.adapter.TransactionAdapter;
 import com.example.moneymanager.database.DatabaseHelper;
 import com.example.moneymanager.model.Transaction;
@@ -24,7 +25,7 @@ import com.google.android.material.snackbar.Snackbar;
 import java.util.Collections;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements TransactionAdapter.OnDeleteClickListener {
+public class MainActivity extends AppCompatActivity implements TransactionAdapter.OnDeleteClickListener, TransactionAdapter.OnItemClickListener {
 
     private RecyclerView recyclerView;
     private TransactionAdapter adapter;
@@ -70,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements TransactionAdapte
 
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new TransactionAdapter(this, Collections.emptyList(), this);
+        adapter = new TransactionAdapter(this, Collections.emptyList(), this, this);
         recyclerView.setAdapter(adapter);
 
 
@@ -128,5 +129,17 @@ public class MainActivity extends AppCompatActivity implements TransactionAdapte
     public void onDeleteClick(int position) {
         Transaction transaction = adapter.getTransactionList().get(position);
         deleteTransaction(transaction, position);
+    }
+
+    @Override
+
+    public void onItemClick(Transaction transaction) {
+
+        Intent intent = new Intent(MainActivity.this, TransactionDetailsActivity.class);
+
+        // Pass transaction ID to details screen
+        intent.putExtra("transaction_id", transaction.getId());
+
+        startActivity(intent);
     }
 }
