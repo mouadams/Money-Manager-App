@@ -1,0 +1,24 @@
+<resources>
+
+    <!-- Light mode -->
+    <color name="light_bg">#FFFFFF</color>
+    <color name="light_card">#F8FAFC</color>
+    <color name="light_outline">#E2E8F0</color>
+    <color name="light_text_secondary">#64748B</color>
+    <color name="light_text_primary">#0F172A</color>
+
+    <!-- Dark mode -->
+    <color name="dark_bg">#0F172A</color>
+    <color name="dark_card">#1E293B</color>
+    <color name="dark_stroke">#334155</color>
+    <color name="dark_text_secondary">#94A3B8</color>
+    <color name="dark_text_primary">#F1F5F9</color>
+
+    <!-- Shared -->
+    <color name="sky_blue">#38BDF8</color>
+    <color name="sky_blue_ripple">#BAE6FD</color>
+
+    <color name="green">#4CAF50</color>
+    <color name="red">#F44336</color>
+
+</resources>

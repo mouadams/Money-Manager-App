@@ -1,0 +1,25 @@
+<resources>
+
+    <style name="Theme.MoneyManager"
+        parent="Theme.Material3.DayNight.NoActionBar">
+
+        <!-- Background -->
+        <item name="android:colorBackground">@color/dark_bg</item>
+
+        <!-- Surfaces -->
+        <item name="colorSurface">@color/dark_card</item>
+        <item name="colorSurfaceVariant">@color/dark_card</item>
+
+        <!-- Text -->
+        <item name="colorOnBackground">@color/dark_text_primary</item>
+        <item name="colorOnSurface">@color/dark_text_primary</item>
+        <item name="colorOutline">@color/dark_text_secondary</item>
+        <item name="colorOutlineVariant">@color/dark_stroke</item>
+
+        <!-- Primary Accent -->
+        <item name="colorPrimary">@color/sky_blue</item>
+        <item name="colorOnPrimary">@color/dark_bg</item>
+
+    </style>
+
+</resources>
