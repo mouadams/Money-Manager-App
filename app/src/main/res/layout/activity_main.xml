@@ -19,6 +19,16 @@
             android:padding="16dp">
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnLogout"
+                style="@style/Widget.Material3.Button.TextButton.Icon"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_alignParentStart="true"
+                app:icon="@android:drawable/ic_menu_close_clear_cancel"
+                app:iconSize="24dp"
+                app:iconTint="?attr/colorError" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnThemeToggle"
                 style="@style/Widget.Material3.Button.TextButton.Icon"
                 android:layout_width="48dp"
