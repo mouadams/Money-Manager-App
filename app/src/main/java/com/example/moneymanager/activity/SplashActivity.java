@@ -9,7 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.moneymanager.MainActivity;
 import com.example.moneymanager.R;
-import com.example.moneymanager.utils.AuthHelper;
+import com.example.moneymanager.helpers.AuthHelper;
 
 public class SplashActivity extends AppCompatActivity {
 

@@ -3,9 +3,7 @@ package com.example.moneymanager.activity;
 import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.View;
 import android.widget.Button;
-import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -26,9 +24,10 @@ public class AddTransactionActivity extends AppCompatActivity {
     private RadioGroup radioGroupType;
     private RadioButton rbDeposit, rbWithdrawal;
     private Button btnSave;
+
     private DatabaseHelper dbHelper;
-    private String selectedDate;
     private Calendar calendar;
+    private String selectedDate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,9 +47,9 @@ public class AddTransactionActivity extends AppCompatActivity {
         rbDeposit = findViewById(R.id.rbDeposit);
         rbWithdrawal = findViewById(R.id.rbWithdrawal);
         btnSave = findViewById(R.id.btnSave);
+
         dbHelper = new DatabaseHelper(this);
         calendar = Calendar.getInstance();
-
 
         updateDateField();
     }
@@ -60,22 +59,24 @@ public class AddTransactionActivity extends AppCompatActivity {
     }
 
     private void showDatePicker() {
-        DatePickerDialog datePickerDialog = new DatePickerDialog(
+        DatePickerDialog dialog = new DatePickerDialog(
                 this,
-                (view, year, month, dayOfMonth) -> {
-                    calendar.set(year, month, dayOfMonth);
+                (view, year, month, day) -> {
+                    calendar.set(year, month, day);
                     updateDateField();
                 },
                 calendar.get(Calendar.YEAR),
                 calendar.get(Calendar.MONTH),
                 calendar.get(Calendar.DAY_OF_MONTH)
         );
-        datePickerDialog.show();
+
+        dialog.show();
     }
 
     private void updateDateField() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        selectedDate = dateFormat.format(calendar.getTime());
+        SimpleDateFormat format =
+                new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        selectedDate = format.format(calendar.getTime());
         etDate.setText(selectedDate);
     }
 
@@ -88,22 +89,44 @@ public class AddTransactionActivity extends AppCompatActivity {
     }
 
     private boolean validateInput() {
-        String amountStr = etAmount.getText().toString().trim();
-        String reason = etReason.getText().toString().trim();
+
+        String amountStr = etAmount.getText() != null
+                ? etAmount.getText().toString().trim()
+                : "";
+
+        String reason = etReason.getText() != null
+                ? etReason.getText().toString().trim()
+                : "";
 
         if (TextUtils.isEmpty(amountStr)) {
             etAmount.setError("Amount cannot be empty");
+            etAmount.requestFocus();
             return false;
         }
 
-        double amount = Double.parseDouble(amountStr);
+        double amount;
+        try {
+            amount = Double.parseDouble(amountStr);
+        } catch (NumberFormatException e) {
+            etAmount.setError("Invalid number format");
+            etAmount.requestFocus();
+            return false;
+        }
+
         if (amount <= 0) {
             etAmount.setError("Amount must be greater than zero");
+            etAmount.requestFocus();
             return false;
         }
 
         if (TextUtils.isEmpty(reason)) {
             etReason.setError("Reason cannot be empty");
+            etReason.requestFocus();
+            return false;
+        }
+
+        if (radioGroupType.getCheckedRadioButtonId() == -1) {
+            Toast.makeText(this, "Please select transaction type", Toast.LENGTH_SHORT).show();
             return false;
         }
 
@@ -111,18 +134,31 @@ public class AddTransactionActivity extends AppCompatActivity {
     }
 
     private void saveTransaction() {
+
         String amountStr = etAmount.getText().toString().trim();
         String reason = etReason.getText().toString().trim();
-        String type = rbDeposit.isChecked() ? "Deposit" : "Withdrawal";
         double amount = Double.parseDouble(amountStr);
 
-        boolean success = dbHelper.addTransaction(type, amount, reason, selectedDate);
+        String type = rbDeposit.isChecked()
+                ? "Deposit"
+                : "Withdrawal";
+
+        boolean success = dbHelper.addTransaction(
+                type,
+                amount,
+                reason,
+                selectedDate
+        );
 
         if (success) {
-            Toast.makeText(this, "Transaction saved successfully", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,
+                    "Transaction saved successfully",
+                    Toast.LENGTH_SHORT).show();
             finish();
         } else {
-            Toast.makeText(this, "Error saving transaction", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,
+                    "Error saving transaction",
+                    Toast.LENGTH_SHORT).show();
         }
     }
 }

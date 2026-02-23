@@ -188,7 +188,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID)),
                     cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_USER_FULL_NAME)),
                     cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_USER_EMAIL)),
-                    "" // Don't return password
+                    ""
             );
             cursor.close();
         }
@@ -224,7 +224,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID)),
                     cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_USER_FULL_NAME)),
                     cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_USER_EMAIL)),
-                    "" // Don't return password
+                    ""
             );
             cursor.close();
         }
@@ -242,7 +242,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             return sb.toString();
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
-            return password; // Fallback to plain text (not recommended for production)
+            return password;
         }
     }
 }

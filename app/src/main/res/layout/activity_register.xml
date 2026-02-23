@@ -88,7 +88,6 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:hint="Password"
-            app:startIconDrawable="@android:drawable/ic_lock"
             app:endIconMode="password_toggle"
             app:helperText="Minimum 6 characters"
             app:helperTextEnabled="true"
@@ -107,7 +106,6 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
             android:hint="Confirm Password"
-            app:startIconDrawable="@android:drawable/ic_lock"
             app:endIconMode="password_toggle"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
