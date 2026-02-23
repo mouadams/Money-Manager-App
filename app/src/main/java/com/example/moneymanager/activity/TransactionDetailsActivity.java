@@ -3,7 +3,6 @@ package com.example.moneymanager.activity;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,7 +16,8 @@ public class TransactionDetailsActivity extends AppCompatActivity {
     private EditText etTitle, etAmount;
     private Button btnUpdate, btnDelete;
     private DatabaseHelper dbHelper;
-    private int transactionId;
+
+    private int transactionId = -1;
     private Transaction transaction;
 
     @Override
@@ -25,29 +25,47 @@ public class TransactionDetailsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_transaction_details);
 
+        initViews();
+        loadTransaction();
+        setupListeners();
+    }
+
+    private void initViews() {
         etTitle = findViewById(R.id.etTitle);
         etAmount = findViewById(R.id.etAmount);
         btnUpdate = findViewById(R.id.btnUpdate);
         btnDelete = findViewById(R.id.btnDelete);
 
         dbHelper = new DatabaseHelper(this);
+    }
 
+    private void loadTransaction() {
         transactionId = getIntent().getIntExtra("transaction_id", -1);
 
-        if (transactionId != -1) {
-            transaction = dbHelper.getTransactionById(transactionId);
-
-            if (transaction != null) {
-                etTitle.setText(transaction.getReason());
-                etAmount.setText(String.valueOf(transaction.getAmount()));
-            }
+        if (transactionId == -1) {
+            finish(); // Invalid ID
+            return;
         }
 
+        transaction = dbHelper.getTransactionById(transactionId);
+
+        if (transaction == null) {
+            finish(); // Transaction not found
+            return;
+        }
+
+        etTitle.setText(transaction.getReason());
+        etAmount.setText(String.valueOf(transaction.getAmount()));
+    }
+
+    private void setupListeners() {
         btnUpdate.setOnClickListener(v -> updateTransaction());
         btnDelete.setOnClickListener(v -> deleteTransaction());
     }
 
     private void updateTransaction() {
+
+        if (transaction == null) return;
 
         String title = etTitle.getText().toString().trim();
         String amountStr = etAmount.getText().toString().trim();
@@ -64,33 +82,36 @@ public class TransactionDetailsActivity extends AppCompatActivity {
             return;
         }
 
+        double amount;
+
+        try {
+            amount = Double.parseDouble(amountStr);
+        } catch (NumberFormatException e) {
+            etAmount.setError("Invalid number");
+            etAmount.requestFocus();
+            return;
+        }
+
         new AlertDialog.Builder(this)
                 .setTitle("Confirm Update")
                 .setMessage("Are you sure you want to update this transaction?")
                 .setPositiveButton("Yes", (dialog, which) -> {
 
-                    try {
-                        double amount = Double.parseDouble(amountStr);
+                    transaction.setReason(title);
+                    transaction.setAmount(amount);
 
-                        transaction.setReason(title);
-                        transaction.setAmount(amount);
+                    dbHelper.updateTransaction(transaction);
 
-                        dbHelper.updateTransaction(transaction);
-
-                        setResult(RESULT_OK);
-                        finish();
-
-                    } catch (NumberFormatException e) {
-                        etAmount.setError("Invalid number");
-                        etAmount.requestFocus();
-                    }
-
+                    setResult(RESULT_OK);
+                    finish();
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
     }
 
     private void deleteTransaction() {
+
+        if (transactionId == -1) return;
 
         new AlertDialog.Builder(this)
                 .setTitle("Confirm Delete")

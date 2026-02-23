@@ -1,4 +1,4 @@
-package com.example.moneymanager.utils;
+package com.example.moneymanager.helpers;
 
 import android.content.Context;
 import android.content.SharedPreferences;
